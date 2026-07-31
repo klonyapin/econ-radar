@@ -137,6 +137,13 @@ metrics:
     source_id: CPIAUCSL
     derived: yoy_change
     surprise_threshold_zscore: 2.0
+  - id: US_CORE_PCE
+    name: 米コアPCE (Fed が最重視するインフレ指標)
+    category: macro_indicator
+    unit: index
+    source: fred
+    source_id: PCEPILFE
+    surprise_threshold_zscore: 2.0
   - id: US_UNRATE
     name: 米失業率
     category: macro_indicator
@@ -150,6 +157,72 @@ metrics:
     source: fred
     source_id: PAYEMS
     derived: mom_change
+    surprise_threshold_zscore: 2.0
+  - id: US_INITIAL_CLAIMS
+    name: 米新規失業保険申請件数 (週次、雇用の高頻度センサー)
+    category: macro_indicator
+    unit: thousands
+    source: fred
+    source_id: ICSA
+    surprise_threshold_zscore: 2.5
+  - id: US_INDPRO
+    name: 米鉱工業生産指数
+    category: macro_indicator
+    unit: index
+    source: fred
+    source_id: INDPRO
+    surprise_threshold_zscore: 2.0
+  - id: US_HOUST
+    name: 米住宅着工件数
+    category: macro_indicator
+    unit: thousands_annualized
+    source: fred
+    source_id: HOUST
+    surprise_threshold_zscore: 2.0
+  - id: US_UMCSENT
+    name: 米ミシガン消費者信頼感指数
+    category: macro_indicator
+    unit: index
+    source: fred
+    source_id: UMCSENT
+    surprise_threshold_zscore: 2.0
+  - id: US_REAL_GDP
+    name: 米実質GDP (四半期)
+    category: macro_indicator
+    unit: billions_chained_2017_dollars
+    source: fred
+    source_id: GDPC1
+
+  # ─────────── Inflation expectations & credit ───────────
+  - id: US_BEI_5Y
+    name: 米5年ブレイクイーブンインフレ率
+    category: rate
+    unit: percent
+    source: fred
+    source_id: T5YIE
+    surprise_threshold_zscore: 2.0
+  - id: US_BEI_10Y
+    name: 米10年ブレイクイーブンインフレ率
+    category: rate
+    unit: percent
+    source: fred
+    source_id: T10YIE
+    surprise_threshold_zscore: 2.0
+  - id: US_HY_SPREAD
+    name: 米ハイイールド社債スプレッド (信用ストレス指標)
+    category: spread
+    unit: percent_points
+    source: fred
+    source_id: BAMLH0A0HYM2
+    surprise_threshold_zscore: 2.5
+
+  # ─────────── Institutional / household holdings (Z.1) ───────────
+  - id: US_HH_NETWORTH
+    name: 米家計純資産 (四半期、資金循環統計)
+    category: monetary
+    unit: usd_billions
+    source: fred
+    source_id: HNONWRQ027S
     surprise_threshold_zscore: 2.0
 
   # ─────────── Positioning (CFTC TFF, Leveraged Money = hedge funds) ───────────
