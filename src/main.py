@@ -23,6 +23,7 @@ from src.ingest import cot as cot_ingest
 from src.ingest import fred as fred_ingest
 from src.ingest import gdelt as gdelt_ingest
 from src.ingest import rss as rss_ingest
+from src.ingest import wikipedia as wikipedia_ingest
 from src.ingest import yfinance_ingest
 from src.llm import hypothesize, interpret, retrospective
 from src.models import IngestedEvent, MetricDefinition
@@ -114,6 +115,8 @@ def job_ingest_frequent() -> None:
                     events = rss_ingest.fetch(src, since=since)
                 elif src.type == "gdelt":
                     events = gdelt_ingest.fetch(src, since=since)
+                elif src.type == "wikipedia":
+                    events = wikipedia_ingest.fetch(src, since=since)
                 else:
                     continue
             except Exception as e:

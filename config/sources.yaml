@@ -89,6 +89,18 @@ sources:
     category: policy
     frequency: frequent
 
+  # ─────────── Wikipedia edit history (frequent, leading indicator) ───────────
+  # Burst of substantive edits to a policy page often precedes real-world
+  # policy news. Small diffs and bot edits are filtered out in the fetcher.
+  # Category is deliberately not "policy" — these go to #raw-feed only;
+  # LLM hypothesis generation would be too noisy here.
+  - id: wikipedia_policy_pages
+    type: wikipedia
+    endpoint: https://en.wikipedia.org/w/api.php
+    query: "Federal_Reserve|Bank_of_Japan|European_Central_Bank|Bank_of_England|People%27s_Bank_of_China|Inflation|Quantitative_easing|Yield_curve_control|Federal_funds_rate|Monetary_policy|Fiscal_policy|Tariff|Sanctions|Interest_rate|Trade_war"
+    category: policy_leading_indicator
+    frequency: frequent
+
   # ─────────── GDELT (frequent) ───────────
   # GDELT 2.0 DOC 2.0 API. Query uses GDELT's search DSL:
   #   theme:<GKG_THEME>  filters by GDELT GKG themes (curated topic tags)
