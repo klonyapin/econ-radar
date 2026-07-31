@@ -28,7 +28,7 @@ from src.ingest import yfinance_ingest
 from src.llm import hypothesize, interpret, retrospective
 from src.models import IngestedEvent, MetricDefinition
 from src.nlp import policy_classifier
-from src import policy_calendar
+from src import policy_calendar, rag
 
 
 # ────────────────────── generic helpers ──────────────────────
@@ -252,9 +252,15 @@ def job_retrospective() -> None:
 
 
 def _handle_policy_event(conn, ev: IngestedEvent) -> None:
-    """Generate hypotheses via LLM, persist, post to #policy."""
+    """Generate hypotheses via LLM, persist, post to #policy.
+
+    Enriches the prompt with (a) upcoming/recent policy calendar context and
+    (b) past verified analogs whose descriptions share action phrases.
+    """
     try:
-        hypotheses = hypothesize.generate_hypotheses(ev)
+        analogs = rag.find_analogs(conn, f"{ev.title} {ev.body or ''}")
+        analog_ctx = rag.format_for_prompt(analogs)
+        hypotheses = hypothesize.generate_hypotheses(ev, analog_context=analog_ctx)
     except Exception as e:
         _log_error(f"hypothesis gen failed for {ev.id}: {e}")
         return

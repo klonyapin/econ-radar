@@ -30,7 +30,9 @@ _SYSTEM = """あなたはマクロ経済アナリストです。
 """
 
 
-def generate_hypotheses(policy_event: IngestedEvent) -> list[Hypothesis]:
+def generate_hypotheses(
+    policy_event: IngestedEvent, analog_context: str = ""
+) -> list[Hypothesis]:
     if os.environ.get("DRY_RUN") == "1":
         print(
             f"[DRY_RUN hypothesize] would generate hypotheses for: {policy_event.title[:100]}",
@@ -50,19 +52,20 @@ def generate_hypotheses(policy_event: IngestedEvent) -> list[Hypothesis]:
 
     ctx = current_context()
     context_block = f"\n## 直近の政策イベントコンテキスト\n{ctx}\n" if ctx else ""
+    analog_block = f"\n{analog_context}\n" if analog_context else ""
 
     user = f"""## 政策発表
 タイトル: {policy_event.title}
 発表時刻: {policy_event.ts.isoformat()}
 本文: {policy_event.body or "(本文なし、タイトルのみから推論)"}
-{context_block}
+{context_block}{analog_block}
 ## 追跡メトリクス (metric_id はここから選択のみ)
 {metrics_list}
 
 ## 伝達経路カタログ (transmission_channel はここから選択のみ)
 {channels_list}
 
-JSON 配列を返せ。
+JSON 配列を返せ。過去の類似政策データがある場合はそれを踏まえた仮説にすること。
 """
     raw = call_text(_SYSTEM, user, max_tokens=2048)
     # strip potential ```json fences
