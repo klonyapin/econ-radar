@@ -26,6 +26,7 @@ from src.ingest import rss as rss_ingest
 from src.ingest import yfinance_ingest
 from src.llm import hypothesize, interpret, retrospective
 from src.models import IngestedEvent, MetricDefinition
+from src.nlp import policy_classifier
 
 
 # ────────────────────── generic helpers ──────────────────────
@@ -123,7 +124,8 @@ def job_ingest_frequent() -> None:
                 if not _insert_event(conn, ev):
                     continue
                 _post_raw(ev)
-                if src.category == "policy" or src.category == "central_bank":
+                combined_text = f"{ev.title} {ev.body or ''}"
+                if policy_classifier.is_policy_relevant(combined_text, src.category):
                     _handle_policy_event(conn, ev)
 
         _mark_success(conn, "ingest_frequent", datetime.now(timezone.utc))
