@@ -96,8 +96,11 @@ sources:
     frequency: daily
 
   # ─────────── CFTC COT (weekly, Fri 15:30 ET release) ───────────
+  # Uses Socrata Open Data API for "Traders in Financial Futures" (TFF).
+  # Field naming: lev_money_positions_long / lev_money_positions_short.
+  # Docs: https://publicreporting.cftc.gov/api/views/gpe5-46if
   - id: cftc_cot_financial
-    type: cot_csv
-    url: https://www.cftc.gov/dea/newcot/f_disagg.txt
+    type: cot
+    endpoint: https://publicreporting.cftc.gov/resource/gpe5-46if.json
     category: positioning
     frequency: weekly

@@ -178,7 +178,7 @@ def job_ingest_weekly() -> None:
     conn = db.get_connection()
     try:
         cot_sources = [
-            s for s in load_sources().values() if s.type == "cot_csv"
+            s for s in load_sources().values() if s.type == "cot"
         ]
         cot_metrics = [
             m for m in load_metrics().values() if m.source and m.source.startswith("cftc")

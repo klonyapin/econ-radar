@@ -76,7 +76,7 @@ class SourceDefinition(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     id: str
-    type: Literal["rss", "fred_api", "yfinance", "cot_csv", "gdelt"]
+    type: Literal["rss", "fred_api", "yfinance", "cot", "gdelt"]
     category: str
     frequency: Literal["frequent", "daily", "weekly", "monthly"]
     url: Optional[str] = None

@@ -152,7 +152,8 @@ metrics:
     derived: mom_change
     surprise_threshold_zscore: 2.0
 
-  # ─────────── Positioning (CFTC COT) ───────────
+  # ─────────── Positioning (CFTC TFF, Leveraged Money = hedge funds) ───────────
+  # Net = lev_money_long - lev_money_short. Sign convention: positive = net long.
   - id: COT_JPY_NET_SPEC
     name: 円 投機筋ネットポジション
     category: positioning
@@ -166,4 +167,32 @@ metrics:
     unit: contracts
     source: cftc_cot_financial
     source_id: "099741"
+    surprise_threshold_zscore: 2.0
+  - id: COT_GBP_NET_SPEC
+    name: ポンド 投機筋ネットポジション
+    category: positioning
+    unit: contracts
+    source: cftc_cot_financial
+    source_id: "096742"
+    surprise_threshold_zscore: 2.0
+  - id: COT_CHF_NET_SPEC
+    name: スイスフラン 投機筋ネットポジション
+    category: positioning
+    unit: contracts
+    source: cftc_cot_financial
+    source_id: "092741"
+    surprise_threshold_zscore: 2.0
+  - id: COT_AUD_NET_SPEC
+    name: 豪ドル 投機筋ネットポジション
+    category: positioning
+    unit: contracts
+    source: cftc_cot_financial
+    source_id: "232741"
+    surprise_threshold_zscore: 2.0
+  - id: COT_CAD_NET_SPEC
+    name: カナダドル 投機筋ネットポジション
+    category: positioning
+    unit: contracts
+    source: cftc_cot_financial
+    source_id: "090741"
     surprise_threshold_zscore: 2.0
