@@ -225,6 +225,23 @@ metrics:
     source_id: HNONWRQ027S
     surprise_threshold_zscore: 2.0
 
+  # ─────────── Corporate profits (BEA aggregate, 四半期) ───────────
+  # 米国全企業の合算利益。指数レベル (S&P 500) より rawer なマクロ利益指標。
+  - id: US_CORP_PROFITS
+    name: 米企業利益 (BEA, IVA/CCAdj 調整済)
+    category: macro_indicator
+    unit: usd_billions
+    source: fred
+    source_id: CP
+    surprise_threshold_zscore: 2.0
+  - id: US_CORP_PROFITS_AFTERTAX
+    name: 米企業利益 (税引後、BEA)
+    category: macro_indicator
+    unit: usd_billions
+    source: fred
+    source_id: CPATAX
+    surprise_threshold_zscore: 2.0
+
   # ─────────── Positioning (CFTC TFF, Leveraged Money = hedge funds) ───────────
   # Net = lev_money_long - lev_money_short. Sign convention: positive = net long.
   - id: COT_JPY_NET_SPEC

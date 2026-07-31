@@ -7,6 +7,9 @@ import feedparser
 
 from src.models import IngestedEvent, SourceDefinition
 
+# Some feeds (Reddit especially) 403 the default python UA. Identify ourselves.
+_USER_AGENT = "econ-radar/0.1 (https://github.com/klonyapin/econ-radar)"
+
 
 def fetch(source: SourceDefinition, since: datetime | None = None) -> list[IngestedEvent]:
     """Fetch new items from an RSS/Atom feed.
@@ -15,7 +18,7 @@ def fetch(source: SourceDefinition, since: datetime | None = None) -> list[Inges
     """
     if not source.url:
         return []
-    parsed = feedparser.parse(source.url)
+    parsed = feedparser.parse(source.url, agent=_USER_AGENT)
     events: list[IngestedEvent] = []
     for entry in parsed.entries:
         ts = _entry_timestamp(entry)

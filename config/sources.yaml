@@ -105,6 +105,37 @@ sources:
     category: policy
     frequency: frequent
 
+  # ─────────── Reddit retail sentiment (frequent) ───────────
+  # Reddit の JSON API は 2023 以降 OAuth 必須で 403 になるが、RSS は無認証で
+  # そのまま取れる。/hot/.rss は engagement 順に上位 25 件を返すので、追加
+  # フィルタなしでも高シグナルポストが取れる。LLM 政策検知は発火させない
+  # (retail_sentiment カテゴリは policy_classifier の対象外)。
+  - id: reddit_wsb
+    type: rss
+    url: https://www.reddit.com/r/wallstreetbets/hot/.rss
+    category: retail_sentiment
+    frequency: frequent
+  - id: reddit_investing
+    type: rss
+    url: https://www.reddit.com/r/investing/hot/.rss
+    category: retail_sentiment
+    frequency: frequent
+  - id: reddit_stocks
+    type: rss
+    url: https://www.reddit.com/r/stocks/hot/.rss
+    category: retail_sentiment
+    frequency: frequent
+  - id: reddit_economics
+    type: rss
+    url: https://www.reddit.com/r/Economics/hot/.rss
+    category: retail_sentiment
+    frequency: frequent
+  - id: reddit_crypto
+    type: rss
+    url: https://www.reddit.com/r/CryptoCurrency/hot/.rss
+    category: retail_sentiment
+    frequency: frequent
+
   # ─────────── Wikipedia edit history (frequent, leading indicator) ───────────
   # Burst of substantive edits to a policy page often precedes real-world
   # policy news. Small diffs and bot edits are filtered out in the fetcher.
