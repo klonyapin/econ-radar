@@ -29,7 +29,7 @@ from src.ingest import yfinance_ingest
 from src.llm import hypothesize, interpret, retrospective
 from src.llm import morning_note
 from src.models import IngestedEvent, MetricDefinition
-from src.nlp import policy_classifier
+from src.nlp import breaking_classifier, policy_classifier
 from src import policy_calendar, rag
 
 
@@ -131,6 +131,10 @@ def job_ingest_frequent() -> None:
                     continue
                 _post_raw(ev)
                 combined_text = f"{ev.title} {ev.body or ''}"
+
+                # Geopolitical BREAKING check (wars, coups, disasters, etc.)
+                _check_geopolitical_breaking(conn, ev, combined_text)
+
                 if policy_classifier.is_policy_relevant(combined_text, src.category):
                     _handle_policy_event(conn, ev)
 
@@ -328,6 +332,8 @@ def _handle_policy_event(conn, ev: IngestedEvent) -> None:
         _post_breaking(
             conn,
             trigger_type="policy",
+            category=f"policy_rate:{ev.source}",
+            source_event_id=ev.id,
             summary=(
                 f"{ev.source} が政策発表: '{ev.title}' "
                 f"({ev.ts.isoformat()}) — 利上げ/利下げ相当のシグナル検知"
@@ -376,6 +382,7 @@ def _detect_and_post_surprise(conn, metric: MetricDefinition) -> None:
         _post_breaking(
             conn,
             trigger_type="surprise",
+            category=f"surprise:{metric.id}",
             summary=(
                 f"{metric.name} ({metric.id}) が {signal.value} {metric.unit} "
                 f"に到達、z-score {signal.zscore:+.2f} — >4σ の極端な動き "
@@ -384,14 +391,67 @@ def _detect_and_post_surprise(conn, metric: MetricDefinition) -> None:
         )
 
 
-def _post_breaking(conn, trigger_type: str, summary: str) -> None:
-    """Fire an immediate BREAKING alert (Mode D style) to the policy channel."""
+def _post_breaking(
+    conn,
+    trigger_type: str,
+    summary: str,
+    category: str = "general",
+    source_event_id: str | None = None,
+) -> None:
+    """Fire an immediate BREAKING alert (Mode D style) to the policy channel.
+
+    Persists to breaking_alerts for the de-dup logic. Callers that need
+    de-dup (geopolitical, where the same event may hit multiple sources)
+    should check ``_recently_fired_breaking`` first.
+    """
+    now = datetime.now(timezone.utc)
     try:
         note = morning_note.generate_breaking(conn, trigger_type, summary)
     except Exception as e:
         _log_error(f"BREAKING generation failed: {e}")
         return
+    conn.execute(
+        "INSERT INTO breaking_alerts (ts, category, trigger_type, source_event_id, summary) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (now, category, trigger_type, source_event_id, summary[:500]),
+    )
+    conn.commit()
     discord_post.post("policy", f"🚨 **BREAKING**\n\n{note}")
+
+
+def _recently_fired_breaking(
+    conn, category: str, within_hours: int = 24
+) -> bool:
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=within_hours)
+    row = conn.execute(
+        "SELECT 1 FROM breaking_alerts WHERE category = ? AND ts >= ? LIMIT 1",
+        (category, cutoff),
+    ).fetchone()
+    return row is not None
+
+
+def _check_geopolitical_breaking(conn, ev: IngestedEvent, combined_text: str) -> None:
+    """Fire BREAKING if the event title/body matches a Tier 1 severity phrase.
+
+    De-duped per (category, 24h) so a running Ukraine war news cycle doesn't
+    fire 20 times per day; the first hit does.
+    """
+    category = breaking_classifier.classify(combined_text)
+    if category is None:
+        return
+    if _recently_fired_breaking(conn, category, within_hours=24):
+        return
+    summary = (
+        f"[{ev.source}] {ev.title} "
+        f"(検出カテゴリ: {category}, 時刻 {ev.ts.isoformat()})"
+    )
+    _post_breaking(
+        conn,
+        trigger_type="geopolitical",
+        summary=summary,
+        category=category,
+        source_event_id=ev.id,
+    )
 
 
 def _post_morning_briefing() -> None:

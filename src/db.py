@@ -68,6 +68,17 @@ CREATE TABLE IF NOT EXISTS job_runs (
     last_success_ts TIMESTAMP,
     last_processed_cursor TEXT
 );
+
+CREATE TABLE IF NOT EXISTS breaking_alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts TIMESTAMP NOT NULL,
+    category TEXT NOT NULL,
+    trigger_type TEXT NOT NULL,
+    source_event_id TEXT,
+    summary TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_breaking_ts ON breaking_alerts(ts);
+CREATE INDEX IF NOT EXISTS idx_breaking_category ON breaking_alerts(category);
 """
 
 
