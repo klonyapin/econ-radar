@@ -34,19 +34,41 @@ sources:
     frequency: frequent
 
   # ─────────── Central bank feeds (frequent) ───────────
+  # NOTE: PBOC / SNB / RBA / BOC don't publish stable public RSS or bot-block
+  # generic clients. Their content is still picked up via Reuters and GDELT.
   - id: fed_press
     type: rss
     url: https://www.federalreserve.gov/feeds/press_all.xml
     category: central_bank
     frequency: frequent
+  - id: fed_monetary
+    type: rss
+    url: https://www.federalreserve.gov/feeds/press_monetary.xml
+    category: central_bank
+    frequency: frequent
   - id: ecb_press
     type: rss
-    url: https://www.ecb.europa.eu/press/pr/date/html/pr.rss.xml
+    url: https://www.ecb.europa.eu/rss/press.xml
     category: central_bank
     frequency: frequent
   - id: boj_press
     type: rss
-    url: https://www.boj.or.jp/rss/whatsnew.rdf
+    url: https://www.boj.or.jp/rss/whatsnew.xml
+    category: central_bank
+    frequency: frequent
+  - id: boe_news
+    type: rss
+    url: https://www.bankofengland.co.uk/rss/news
+    category: central_bank
+    frequency: frequent
+  - id: boe_publications
+    type: rss
+    url: https://www.bankofengland.co.uk/rss/publications
+    category: central_bank
+    frequency: frequent
+  - id: rbi_press
+    type: rss
+    url: https://www.rbi.org.in/pressreleases_rss.xml
     category: central_bank
     frequency: frequent
 
