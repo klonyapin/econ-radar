@@ -76,6 +76,18 @@ python -m src.main ingest-weekly
 python -m src.main retrospective
 ```
 
+### DRY_RUN モード
+
+Anthropic / Discord の API を叩かず、何を投げるかだけログ出力。
+Secrets を揃える前の動作確認用:
+
+```bash
+DRY_RUN=1 python -m src.main ingest-daily
+```
+
+FRED / yfinance / GDELT / COT の fetch と統計処理は実行されるので、
+state.db にデータが入ることを確認できる。
+
 CI は `.github/workflows/*.yml` の cron で自動実行。
 
 ## ディレクトリ

@@ -252,6 +252,8 @@ def _handle_policy_event(conn, ev: IngestedEvent) -> None:
     except Exception as e:
         _log_error(f"hypothesis gen failed for {ev.id}: {e}")
         return
+    if not hypotheses:
+        return
 
     conn.execute(
         "INSERT INTO policy_events (id, announced_at, description, source_event_id, hypotheses) "

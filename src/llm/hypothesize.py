@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import sys
 
 from pydantic import TypeAdapter, ValidationError
 
@@ -28,6 +30,13 @@ _SYSTEM = """あなたはマクロ経済アナリストです。
 
 
 def generate_hypotheses(policy_event: IngestedEvent) -> list[Hypothesis]:
+    if os.environ.get("DRY_RUN") == "1":
+        print(
+            f"[DRY_RUN hypothesize] would generate hypotheses for: {policy_event.title[:100]}",
+            file=sys.stderr,
+        )
+        return []
+
     metrics = load_metrics()
     channels = load_theory_channels()
 
