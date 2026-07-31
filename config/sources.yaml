@@ -1,0 +1,98 @@
+# Data sources for econ-radar Phase 1.
+# Each source's polling cadence is driven by the corresponding GitHub Actions
+# workflow (frequent = */15min, daily, weekly).
+#
+# NOTE: RSS URLs shift over time. If a source stops fetching, first verify
+# the feed URL is still live.
+
+sources:
+  # ─────────── News RSS (frequent) ───────────
+  - id: reuters_business
+    type: rss
+    url: https://feeds.reuters.com/reuters/businessNews
+    category: news
+    frequency: frequent
+  - id: reuters_worldnews
+    type: rss
+    url: https://feeds.reuters.com/Reuters/worldNews
+    category: news
+    frequency: frequent
+  - id: bbc_business
+    type: rss
+    url: https://feeds.bbci.co.uk/news/business/rss.xml
+    category: news
+    frequency: frequent
+  - id: nikkei_top
+    type: rss
+    url: https://www.nikkei.com/rss/
+    category: news
+    frequency: frequent
+  - id: ft_world
+    type: rss
+    url: https://www.ft.com/world?format=rss
+    category: news
+    frequency: frequent
+
+  # ─────────── Central bank feeds (frequent) ───────────
+  - id: fed_press
+    type: rss
+    url: https://www.federalreserve.gov/feeds/press_all.xml
+    category: central_bank
+    frequency: frequent
+  - id: ecb_press
+    type: rss
+    url: https://www.ecb.europa.eu/press/pr/date/html/pr.rss.xml
+    category: central_bank
+    frequency: frequent
+  - id: boj_press
+    type: rss
+    url: https://www.boj.or.jp/rss/whatsnew.rdf
+    category: central_bank
+    frequency: frequent
+
+  # ─────────── Government policy feeds (frequent) ───────────
+  - id: kantei_press
+    type: rss
+    url: https://www.kantei.go.jp/index.rss
+    category: policy
+    frequency: frequent
+  - id: whitehouse_briefings
+    type: rss
+    url: https://www.whitehouse.gov/briefing-room/feed/
+    category: policy
+    frequency: frequent
+  - id: mof_japan
+    type: rss
+    url: https://www.mof.go.jp/rss/press_release.xml
+    category: policy
+    frequency: frequent
+
+  # ─────────── GDELT (frequent) ───────────
+  - id: gdelt_events
+    type: gdelt
+    endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+    query: (economy OR monetary OR fiscal OR "central bank" OR inflation)
+    category: political_events
+    frequency: frequent
+
+  # ─────────── FRED (daily) ───────────
+  # Individual series IDs live in metrics.yaml (source_id).
+  - id: fred
+    type: fred_api
+    endpoint: https://api.stlouisfed.org/fred/series/observations
+    category: macro_indicator
+    frequency: daily
+
+  # ─────────── yfinance (daily EOD) ───────────
+  # Individual tickers live in metrics.yaml (source_id).
+  - id: yfinance
+    type: yfinance
+    category: market_data
+    frequency: daily
+
+  # ─────────── CFTC COT (weekly, Fri 15:30 ET release) ───────────
+  - id: cftc_cot_financial
+    type: cot_csv
+    url: https://www.cftc.gov/dea/newcot/f_disagg.txt
+    category: positioning
+    frequency: weekly

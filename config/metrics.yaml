@@ -1,0 +1,169 @@
+# Tracked metrics — the *only* list LLM may reference when writing hypotheses.
+# Adding a new metric here is what expands what the bot can reason about.
+#
+# Fields:
+#   id                         : stable identifier (LLM references this)
+#   name                       : human-readable label
+#   category                   : fx | rate | spread | volatility | equity_index |
+#                                monetary | macro_indicator | positioning
+#   unit                       : free-form unit descriptor
+#   source                     : one of sources.yaml ids
+#   source_id                  : source-specific identifier (FRED series, ticker, COT code)
+#   derived_from, formula      : if computed from other metrics
+#   derived                    : transformation applied (yoy_change | mom_change)
+#   surprise_threshold_zscore  : σ over 90-day rolling; exceeding triggers LLM interp
+
+metrics:
+  # ─────────── Interest rates ───────────
+  - id: US_10Y
+    name: 米10年債利回り
+    category: rate
+    unit: percent
+    source: fred
+    source_id: DGS10
+  - id: US_2Y
+    name: 米2年債利回り
+    category: rate
+    unit: percent
+    source: fred
+    source_id: DGS2
+  - id: US_FFR
+    name: 米FF実効金利
+    category: rate
+    unit: percent
+    source: fred
+    source_id: FEDFUNDS
+  - id: JP_10Y
+    name: 日本10年債利回り (月次, OECD)
+    category: rate
+    unit: percent
+    source: fred
+    source_id: IRLTLT01JPM156N
+  - id: DE_10Y
+    name: ドイツ10年債利回り (月次, OECD)
+    category: rate
+    unit: percent
+    source: fred
+    source_id: IRLTLT01DEM156N
+
+  # ─────────── FX ───────────
+  - id: USDJPY
+    name: ドル円
+    category: fx
+    unit: JPY_per_USD
+    source: fred
+    source_id: DEXJPUS
+    surprise_threshold_zscore: 2.5
+  - id: EURUSD
+    name: ユーロドル
+    category: fx
+    unit: USD_per_EUR
+    source: fred
+    source_id: DEXUSEU
+    surprise_threshold_zscore: 2.5
+  - id: DXY
+    name: ドル指数
+    category: fx
+    unit: index
+    source: yfinance
+    source_id: DX-Y.NYB
+    surprise_threshold_zscore: 2.5
+
+  # ─────────── Spreads (derived) ───────────
+  - id: US_2s10s
+    name: 米10Y-2Yスプレッド (逆イールド指標)
+    category: spread
+    unit: percent_points
+    derived_from: [US_10Y, US_2Y]
+    formula: US_10Y - US_2Y
+    surprise_threshold_zscore: 2.0
+  - id: JP_US_10Y_SPREAD
+    name: 日米10年金利差
+    category: spread
+    unit: percent_points
+    derived_from: [US_10Y, JP_10Y]
+    formula: US_10Y - JP_10Y
+
+  # ─────────── Volatility ───────────
+  - id: VIX
+    name: S&P500インプライドボラ (恐怖指数)
+    category: volatility
+    unit: percent_annualized
+    source: fred
+    source_id: VIXCLS
+    surprise_threshold_zscore: 3.0
+
+  # ─────────── Equity indices ───────────
+  - id: SP500
+    name: S&P 500
+    category: equity_index
+    unit: index_points
+    source: fred
+    source_id: SP500
+  - id: NIKKEI225
+    name: 日経平均株価
+    category: equity_index
+    unit: index_points
+    source: yfinance
+    source_id: ^N225
+  - id: EUROSTOXX50
+    name: ユーロストックス50
+    category: equity_index
+    unit: index_points
+    source: yfinance
+    source_id: ^STOXX50E
+  - id: HANGSENG
+    name: 香港ハンセン
+    category: equity_index
+    unit: index_points
+    source: yfinance
+    source_id: ^HSI
+
+  # ─────────── Monetary / Central bank ───────────
+  - id: FED_BS_TOTAL
+    name: Fedバランスシート総資産
+    category: monetary
+    unit: usd_millions
+    source: fred
+    source_id: WALCL
+    surprise_threshold_zscore: 2.5
+
+  # ─────────── Macro indicators ───────────
+  - id: US_CPI_YOY
+    name: 米CPI前年比
+    category: macro_indicator
+    unit: percent_yoy
+    source: fred
+    source_id: CPIAUCSL
+    derived: yoy_change
+    surprise_threshold_zscore: 2.0
+  - id: US_UNRATE
+    name: 米失業率
+    category: macro_indicator
+    unit: percent
+    source: fred
+    source_id: UNRATE
+  - id: US_NFP_MOM
+    name: 米非農業部門雇用者数 前月差
+    category: macro_indicator
+    unit: thousands
+    source: fred
+    source_id: PAYEMS
+    derived: mom_change
+    surprise_threshold_zscore: 2.0
+
+  # ─────────── Positioning (CFTC COT) ───────────
+  - id: COT_JPY_NET_SPEC
+    name: 円 投機筋ネットポジション
+    category: positioning
+    unit: contracts
+    source: cftc_cot_financial
+    source_id: "097741"
+    surprise_threshold_zscore: 2.0
+  - id: COT_EUR_NET_SPEC
+    name: ユーロ 投機筋ネットポジション
+    category: positioning
+    unit: contracts
+    source: cftc_cot_financial
+    source_id: "099741"
+    surprise_threshold_zscore: 2.0

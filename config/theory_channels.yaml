@@ -1,0 +1,74 @@
+# Economic theory transmission channels — LLM MUST choose from this list
+# when writing hypotheses. Keeps generated hypotheses grounded in named
+# mechanisms rather than free-text hand-waving.
+
+transmission_channels:
+  - id: monetary_policy_transmission
+    name: 金融政策の伝達経路
+    description: 政策金利変更 → 市場金利 → 貸出金利 → 設備投資・消費
+    typical_lag_months: 6-12
+
+  - id: interest_rate_parity
+    name: 金利平価
+    description: 二国間金利差 → 為替 (無裁定条件下)
+    typical_lag_months: 1-3
+
+  - id: carry_trade_unwind
+    name: キャリートレード巻き戻し
+    description: 低金利通貨のショート解消 → 為替急変・ボラ急騰
+    typical_lag_months: 0-1
+
+  - id: portfolio_rebalancing
+    name: ポートフォリオ・リバランス
+    description: 大手機関 (年金・保険) の資産配分変更 → 対象資産価格
+    typical_lag_months: 3-12
+
+  - id: exchange_rate_pass_through
+    name: 為替パススルー
+    description: 為替変動 → 輸入物価 → CPI
+    typical_lag_months: 3-9
+
+  - id: taylor_rule
+    name: テイラールール
+    description: インフレ率・産出ギャップ → 適正政策金利の推計
+    typical_lag_months: 0-3
+
+  - id: phillips_curve
+    name: フィリップス曲線
+    description: 失業率 → 賃金上昇 → インフレ (近年は関係が緩やか)
+    typical_lag_months: 6-18
+
+  - id: fiscal_multiplier
+    name: 財政乗数
+    description: 政府支出 → 総需要 (需給ギャップ・限界消費性向に依存)
+    typical_lag_months: 3-18
+
+  - id: yield_curve_slope
+    name: イールドカーブ傾斜
+    description: 逆イールドは景気後退の先行指標として実証的に強い
+    typical_lag_months: 12-24
+
+  - id: balance_of_payments
+    name: 国際収支
+    description: 経常収支 → 資本フロー → 為替均衡
+    typical_lag_months: 3-12
+
+  - id: safe_haven_flow
+    name: 安全資産フロー
+    description: リスクオフ → 円・ドル・スイスフラン・金・米国債への逃避
+    typical_lag_months: 0-1
+
+  - id: quantitative_easing_transmission
+    name: 量的緩和の伝達
+    description: 中銀BS拡大 → 長期金利低下 → リスク資産の相対価値上昇
+    typical_lag_months: 3-12
+
+  - id: expectations_channel
+    name: 期待経路
+    description: 中銀のフォワードガイダンス → 期待インフレ・期待金利 → 現実の意思決定
+    typical_lag_months: 0-6
+
+  - id: credit_channel
+    name: 信用経路
+    description: 政策金利 → 銀行貸出条件 → 中小企業・家計の資金アクセス
+    typical_lag_months: 3-9

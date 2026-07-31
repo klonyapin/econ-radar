@@ -1,0 +1,10 @@
+# Discord channel → environment variable holding the webhook URL.
+# Set the values in GitHub Secrets (CI) or in a local .env file (dev).
+
+channels:
+  raw_feed:         DISCORD_WEBHOOK_RAW
+  markets:          DISCORD_WEBHOOK_MARKETS
+  policy:           DISCORD_WEBHOOK_POLICY
+  macro_structural: DISCORD_WEBHOOK_MACRO
+  surprise:         DISCORD_WEBHOOK_SURPRISE
+  retrospective:    DISCORD_WEBHOOK_RETRO
