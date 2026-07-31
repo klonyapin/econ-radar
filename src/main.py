@@ -10,6 +10,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 import sys
 import traceback
 from datetime import datetime, timedelta, timezone
@@ -26,6 +27,7 @@ from src.ingest import rss as rss_ingest
 from src.ingest import wikipedia as wikipedia_ingest
 from src.ingest import yfinance_ingest
 from src.llm import hypothesize, interpret, retrospective
+from src.llm import morning_note
 from src.models import IngestedEvent, MetricDefinition
 from src.nlp import policy_classifier
 from src import policy_calendar, rag
@@ -209,6 +211,31 @@ def job_ingest_weekly() -> None:
         conn.close()
 
 
+def job_daily_briefing() -> None:
+    """Consolidated 2x/day macro note in real-analyst voice.
+
+    Mode is picked by JOB_MODE env var ('morning' or 'evening'). Pulls the
+    last ~18h of surprises, policy events, and metric moves into a single
+    narrative note using ``prompts/style_guide.md``.
+    """
+    mode = os.environ.get("JOB_MODE", "morning")
+    db.initialize()
+    conn = db.get_connection()
+    try:
+        try:
+            note = morning_note.generate_note(conn, mode=mode)
+        except Exception as e:
+            _log_error(f"morning_note generation failed: {e}")
+            return
+
+        emoji = "🌅" if mode == "morning" else "🌇"
+        now_utc = datetime.now(timezone.utc)
+        header = f"{emoji} **{mode.upper()} note — {now_utc.strftime('%Y-%m-%d %H:%M UTC')}**"
+        discord_post.post("policy", f"{header}\n\n{note}")
+    finally:
+        conn.close()
+
+
 def job_retrospective() -> None:
     """Daily 01:00 UTC: verify policy hypotheses whose horizon has elapsed."""
     db.initialize()
@@ -288,6 +315,25 @@ def _handle_policy_event(conn, ev: IngestedEvent) -> None:
         )
     discord_post.post("policy", "\n".join(lines))
 
+    # If this looks like a hard rate action from a central bank source, also
+    # fire a BREAKING alert (Mode D). Rate decisions are the highest-impact
+    # events in the calendar; the LLM should react immediately, not wait for
+    # the next morning brief.
+    text = f"{ev.title} {ev.body or ''}".lower()
+    rate_action_keywords = (
+        "basis point", "bps", "rate hike", "rate cut", "rate decision",
+        "利上げ", "利下げ", "政策金利",
+    )
+    if any(kw in text for kw in rate_action_keywords):
+        _post_breaking(
+            conn,
+            trigger_type="policy",
+            summary=(
+                f"{ev.source} が政策発表: '{ev.title}' "
+                f"({ev.ts.isoformat()}) — 利上げ/利下げ相当のシグナル検知"
+            ),
+        )
+
 
 def _detect_and_post_surprise(conn, metric: MetricDefinition) -> None:
     series = _metric_series(conn, metric.id)
@@ -323,6 +369,29 @@ def _detect_and_post_surprise(conn, metric: MetricDefinition) -> None:
     discord_post.post("surprise", msg)
     target = "markets" if metric.category in {"fx", "rate", "spread", "equity_index", "volatility"} else "macro_structural"
     discord_post.post(target, msg)
+
+    # Extreme moves (>4σ, ~0.006% probability if Gaussian) additionally fire a
+    # BREAKING analyst-voice note. Very rare, so cost is bounded.
+    if abs(signal.zscore) >= 4.0:
+        _post_breaking(
+            conn,
+            trigger_type="surprise",
+            summary=(
+                f"{metric.name} ({metric.id}) が {signal.value} {metric.unit} "
+                f"に到達、z-score {signal.zscore:+.2f} — >4σ の極端な動き "
+                f"(発生時刻 {signal.ts.isoformat()})"
+            ),
+        )
+
+
+def _post_breaking(conn, trigger_type: str, summary: str) -> None:
+    """Fire an immediate BREAKING alert (Mode D style) to the policy channel."""
+    try:
+        note = morning_note.generate_breaking(conn, trigger_type, summary)
+    except Exception as e:
+        _log_error(f"BREAKING generation failed: {e}")
+        return
+    discord_post.post("policy", f"🚨 **BREAKING**\n\n{note}")
 
 
 def _post_morning_briefing() -> None:
@@ -416,6 +485,7 @@ JOBS = {
     "ingest-daily": job_ingest_daily,
     "ingest-weekly": job_ingest_weekly,
     "retrospective": job_retrospective,
+    "daily-briefing": job_daily_briefing,
 }
 
 
