@@ -3,6 +3,7 @@ from __future__ import annotations
 from src.compute.surprise import SurpriseSignal
 from src.config_loader import load_metrics, load_theory_channels
 from src.llm.client import call_text
+from src.policy_calendar import current_context
 
 _SYSTEM = """あなたはマクロ経済アナリストです。
 与えられた指標のサプライズ (統計的異常値) について、以下の形式で解釈を返してください:
@@ -25,11 +26,14 @@ def interpret_surprise(signal: SurpriseSignal) -> str:
         f"- {c.id}: {c.name} — {c.description}" for c in channels.values()
     )
     metrics_list = "\n".join(f"- {m.id}: {m.name}" for m in load_metrics().values())
+    ctx = current_context()
+    context_block = f"\n## 直近の政策イベントコンテキスト\n{ctx}\n" if ctx else ""
+
     user = f"""指標: {metric.name} ({metric.id})
 最新値: {signal.value} {metric.unit}
 z-score: {signal.zscore:.2f} (90日ローリングから)
 発生時刻: {signal.ts.isoformat()}
-
+{context_block}
 ## 伝達経路カタログ
 {catalog}
 

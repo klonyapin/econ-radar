@@ -9,6 +9,7 @@ from pydantic import TypeAdapter, ValidationError
 from src.config_loader import load_metrics, load_theory_channels
 from src.llm.client import call_text
 from src.models import Hypothesis, IngestedEvent
+from src.policy_calendar import current_context
 
 _HYPOTHESES_ADAPTER = TypeAdapter(list[Hypothesis])
 
@@ -47,11 +48,14 @@ def generate_hypotheses(policy_event: IngestedEvent) -> list[Hypothesis]:
         f"- {c.id}: {c.name} — {c.description}" for c in channels.values()
     )
 
+    ctx = current_context()
+    context_block = f"\n## 直近の政策イベントコンテキスト\n{ctx}\n" if ctx else ""
+
     user = f"""## 政策発表
 タイトル: {policy_event.title}
 発表時刻: {policy_event.ts.isoformat()}
 本文: {policy_event.body or "(本文なし、タイトルのみから推論)"}
-
+{context_block}
 ## 追跡メトリクス (metric_id はここから選択のみ)
 {metrics_list}
 

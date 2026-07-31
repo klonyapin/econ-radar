@@ -28,6 +28,7 @@ from src.ingest import yfinance_ingest
 from src.llm import hypothesize, interpret, retrospective
 from src.models import IngestedEvent, MetricDefinition
 from src.nlp import policy_classifier
+from src import policy_calendar
 
 
 # ────────────────────── generic helpers ──────────────────────
@@ -139,6 +140,8 @@ def job_ingest_frequent() -> None:
 def job_ingest_daily() -> None:
     """Daily job: FRED + yfinance. Refresh components → derived → z-score → LLM."""
     db.initialize()
+    _post_morning_briefing()
+
     conn = db.get_connection()
     try:
         metrics = list(load_metrics().values())
@@ -314,6 +317,27 @@ def _detect_and_post_surprise(conn, metric: MetricDefinition) -> None:
     discord_post.post("surprise", msg)
     target = "markets" if metric.category in {"fx", "rate", "spread", "equity_index", "volatility"} else "macro_structural"
     discord_post.post(target, msg)
+
+
+def _post_morning_briefing() -> None:
+    """If any high-importance policy events are scheduled in the next 48h,
+    post a heads-up to #policy so the operator (and the LLM's context on
+    later interpretations) knows what to watch.
+    """
+    upcoming = policy_calendar.upcoming(within_hours=48)
+    if not upcoming:
+        return
+    lines = ["**📅 今後 48h の政策イベント (高重要度)**", ""]
+    now = datetime.now(timezone.utc)
+    for e in upcoming:
+        offset_h = (e.date - now).total_seconds() / 3600
+        lines.append(
+            f"- **{e.name}** — {offset_h:+.0f}h後 ({e.date.strftime('%Y-%m-%d %H:%M UTC')}, {e.entity.upper()})"
+        )
+    try:
+        discord_post.post("policy", "\n".join(lines))
+    except Exception as e:
+        _log_error(f"morning briefing failed: {e}")
 
 
 def _post_raw(ev: IngestedEvent) -> None:

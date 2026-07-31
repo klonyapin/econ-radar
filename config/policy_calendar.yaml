@@ -1,0 +1,128 @@
+# Scheduled policy events. Used to (a) inject context into LLM prompts around
+# meeting times, and (b) post morning briefings for the next 48h.
+#
+# Times are UTC. When the entity is Fed/BOE, DST shifts the announcement time
+# by 1h — use the summer time for late-Mar to late-Oct.
+#
+# You MUST update this yaml once a year with the next year's schedule (or
+# whenever a central bank publishes an updated calendar).
+# Reference schedules:
+#   FOMC: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+#   BOJ:  https://www.boj.or.jp/en/mopo/mpmsche_minu/index.htm
+#   ECB:  https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html
+#   BOE:  https://www.bankofengland.co.uk/monetary-policy/monetary-policy-summary-and-minutes
+
+events:
+  # ─────────── 2026 upcoming (after 2026-07-31) ───────────
+  - id: boe_2026_08
+    name: BOE Bank Rate Decision
+    date_utc: "2026-08-06T11:00:00Z"
+    entity: boe
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: ecb_2026_09
+    name: ECB Monetary Policy Decision
+    date_utc: "2026-09-10T12:15:00Z"
+    entity: ecb
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: fomc_2026_09
+    name: FOMC Meeting
+    date_utc: "2026-09-16T18:00:00Z"
+    entity: fed
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: boj_2026_09
+    name: BOJ Monetary Policy Meeting
+    date_utc: "2026-09-18T03:00:00Z"
+    entity: boj
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: boe_2026_09
+    name: BOE Bank Rate Decision
+    date_utc: "2026-09-17T11:00:00Z"
+    entity: boe
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: ecb_2026_10
+    name: ECB Monetary Policy Decision
+    date_utc: "2026-10-22T12:15:00Z"
+    entity: ecb
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: fomc_2026_10
+    name: FOMC Meeting
+    date_utc: "2026-10-28T18:00:00Z"
+    entity: fed
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: boj_2026_10
+    name: BOJ Monetary Policy Meeting
+    date_utc: "2026-10-30T03:00:00Z"
+    entity: boj
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: boe_2026_11
+    name: BOE Bank Rate Decision
+    date_utc: "2026-11-05T12:00:00Z"
+    entity: boe
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: ecb_2026_12
+    name: ECB Monetary Policy Decision
+    date_utc: "2026-12-10T13:15:00Z"
+    entity: ecb
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: fomc_2026_12
+    name: FOMC Meeting
+    date_utc: "2026-12-16T19:00:00Z"
+    entity: fed
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: boj_2026_12
+    name: BOJ Monetary Policy Meeting
+    date_utc: "2026-12-18T03:00:00Z"
+    entity: boj
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: boe_2026_12
+    name: BOE Bank Rate Decision
+    date_utc: "2026-12-17T12:00:00Z"
+    entity: boe
+    kind: monetary_policy_decision
+    importance: high
+
+  # ─────────── Recent past (for LLM retrospective context) ───────────
+  - id: boj_2026_07
+    name: BOJ Monetary Policy Meeting
+    date_utc: "2026-07-31T03:00:00Z"
+    entity: boj
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: fomc_2026_07
+    name: FOMC Meeting
+    date_utc: "2026-07-29T18:00:00Z"
+    entity: fed
+    kind: monetary_policy_decision
+    importance: high
+
+  - id: ecb_2026_07
+    name: ECB Monetary Policy Decision
+    date_utc: "2026-07-23T12:15:00Z"
+    entity: ecb
+    kind: monetary_policy_decision
+    importance: high
