@@ -15,6 +15,7 @@ import traceback
 from datetime import datetime, timedelta, timezone
 
 from src import db
+from src.compute import derived as derived_mod
 from src.compute import surprise as surprise_mod
 from src.config_loader import load_metrics, load_sources
 from src.discord_client import post as discord_post
@@ -131,17 +132,16 @@ def job_ingest_frequent() -> None:
 
 
 def job_ingest_daily() -> None:
-    """Daily job: FRED + yfinance. Compute z-scores → surprise → LLM."""
+    """Daily job: FRED + yfinance. Refresh components → derived → z-score → LLM."""
     db.initialize()
     conn = db.get_connection()
     try:
-        for metric in load_metrics().values():
-            if metric.derived_from:
-                # Derived metrics (spreads) — compute after refreshing components.
-                _refresh_derived(conn, metric)
-                _detect_and_post_surprise(conn, metric)
-                continue
+        metrics = list(load_metrics().values())
+        components = [m for m in metrics if not m.derived_from]
+        derived = [m for m in metrics if m.derived_from]
 
+        # Pass 1: fetch all component metrics from their upstream sources.
+        for metric in components:
             since = _metric_last_ts(conn, metric.id)
             try:
                 if metric.source == "fred":
@@ -153,9 +153,18 @@ def job_ingest_daily() -> None:
             except Exception as e:
                 _log_error(f"metric fetch failed: {metric.id}: {e}")
                 continue
-
             _upsert_metric_points(conn, metric.id, metric.source or "", pts)
             conn.commit()
+
+        # Pass 2: recompute derived metrics from freshly-updated components.
+        for metric in derived:
+            try:
+                derived_mod.refresh(conn, metric)
+            except Exception as e:
+                _log_error(f"derived refresh failed: {metric.id}: {e}")
+
+        # Pass 3: surprise detection on both components and derived.
+        for metric in metrics:
             _detect_and_post_surprise(conn, metric)
 
         _mark_success(conn, "ingest_daily", datetime.now(timezone.utc))
@@ -318,15 +327,6 @@ def _post_retrospective(policy_id: str, description: str, results) -> None:
         if r.llm_reasoning:
             lines.append(f"  → {r.llm_reasoning.strip()}")
     discord_post.post("retrospective", "\n".join(lines))
-
-
-def _refresh_derived(conn, metric: MetricDefinition) -> None:
-    """Recompute a derived metric (e.g., US_10Y - JP_10Y).
-
-    TODO: parse `metric.formula` safely (start with a whitelist evaluator that
-    only accepts <ID op ID> forms). For now this is a placeholder.
-    """
-    return
 
 
 def _verify(conn, hypothesis, announced_at: datetime):

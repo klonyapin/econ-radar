@@ -1,9 +1,17 @@
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 
 STATE_DB_PATH = Path(__file__).resolve().parent.parent / "state" / "state.db"
+
+# Python 3.12 deprecated the default datetime <-> TIMESTAMP adapters.
+# Register explicit ISO-8601 handlers so behavior stays stable across versions.
+sqlite3.register_adapter(datetime, lambda dt: dt.isoformat())
+sqlite3.register_converter(
+    "TIMESTAMP", lambda b: datetime.fromisoformat(b.decode("utf-8"))
+)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS metrics (
