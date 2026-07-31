@@ -132,8 +132,15 @@ def job_ingest_frequent() -> None:
                 _post_raw(ev)
                 combined_text = f"{ev.title} {ev.body or ''}"
 
-                # Geopolitical BREAKING check (wars, coups, disasters, etc.)
-                _check_geopolitical_breaking(conn, ev, combined_text)
+                # Official alerts (USGS/NOAA/ReliefWeb) auto-fire BREAKING —
+                # the source has already filtered for severity so no keyword
+                # classifier is needed. Precedes the keyword-based path.
+                if src.category == "official_alert_severe":
+                    _fire_official_breaking(conn, ev, src)
+                else:
+                    # Keyword BREAKING check (wars, coups, disasters mentioned
+                    # in news RSS). Only run if not from a severe official source.
+                    _check_geopolitical_breaking(conn, ev, combined_text)
 
                 if policy_classifier.is_policy_relevant(combined_text, src.category):
                     _handle_policy_event(conn, ev)
@@ -428,6 +435,35 @@ def _recently_fired_breaking(
         (category, cutoff),
     ).fetchone()
     return row is not None
+
+
+def _fire_official_breaking(conn, ev: IngestedEvent, src) -> None:
+    """Fire BREAKING for an item from an official_alert_severe source.
+
+    De-duped by source_event_id. Stale events (>6h old) are also skipped
+    to avoid spamming BREAKING on the first-ever run where the feed
+    returns everything from the past week.
+    """
+    if ev.ts < datetime.now(timezone.utc) - timedelta(hours=6):
+        return
+    already = conn.execute(
+        "SELECT 1 FROM breaking_alerts WHERE source_event_id = ? LIMIT 1",
+        (ev.id,),
+    ).fetchone()
+    if already:
+        return
+    summary = (
+        f"[公式発表 {src.id}] {ev.title}\n"
+        f"時刻: {ev.ts.isoformat()}\n"
+        f"URL: {ev.url or '(no url)'}"
+    )
+    _post_breaking(
+        conn,
+        trigger_type="official",
+        category=f"official:{src.id}",
+        source_event_id=ev.id,
+        summary=summary,
+    )
 
 
 def _check_geopolitical_breaking(conn, ev: IngestedEvent, combined_text: str) -> None:

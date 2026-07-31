@@ -125,6 +125,47 @@ sources:
     category: policy
     frequency: frequent
 
+  # ─────────── Official government alert sources (frequent) ───────────
+  # official_alert_severe: 一次ソース、全アイテム即 BREAKING (24h de-dup)
+  #   USGS/NOAA/ReliefWeb は自らフィルタ済 (M6.5+ / active hurricane /
+  #   humanitarian disaster) なので全件が「本物の緊急」
+  # official_alert: 参考ソース、raw_feed のみ (量多く BREAKING は誤爆懸念)
+  - id: usgs_significant
+    type: rss
+    url: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.atom
+    category: official_alert_severe
+    frequency: frequent
+  - id: noaa_hurricanes
+    type: rss
+    url: https://www.nhc.noaa.gov/index-at.xml
+    category: official_alert_severe
+    frequency: frequent
+  - id: reliefweb_disasters
+    type: rss
+    url: https://reliefweb.int/disasters/rss.xml
+    category: official_alert_severe
+    frequency: frequent
+  - id: usgs_all_45
+    type: rss
+    url: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.atom
+    category: official_alert
+    frequency: frequent
+  - id: state_dept_travel
+    type: rss
+    url: https://travel.state.gov/_res/rss/TAsTWs.xml
+    category: official_alert
+    frequency: frequent
+  - id: jma_eqvol
+    type: rss
+    url: http://www.data.jma.go.jp/developer/xml/feed/eqvol.xml
+    category: official_alert
+    frequency: frequent
+  - id: jma_extra
+    type: rss
+    url: http://www.data.jma.go.jp/developer/xml/feed/extra.xml
+    category: official_alert
+    frequency: frequent
+
   # ─────────── Reddit retail sentiment (frequent) ───────────
   # Reddit の JSON API は 2023 以降 OAuth 必須で 403 になるが、RSS は無認証で
   # そのまま取れる。/hot/.rss は engagement 順に上位 25 件を返すので、追加
