@@ -68,10 +68,15 @@ sources:
     frequency: frequent
 
   # ─────────── GDELT (frequent) ───────────
+  # GDELT 2.0 DOC 2.0 API. Query uses GDELT's search DSL:
+  #   theme:<GKG_THEME>  filters by GDELT GKG themes (curated topic tags)
+  #   sourcelang:eng     limits to English-language articles (noise control)
+  # Broaden by adding themes or removing sourcelang; see docs at
+  # https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/
   - id: gdelt_events
     type: gdelt
     endpoint: https://api.gdeltproject.org/api/v2/doc/doc
-    query: (economy OR monetary OR fiscal OR "central bank" OR inflation)
+    query: (theme:ECON_INFLATION OR theme:ECON_INTERESTRATES OR theme:ECON_CENTRALBANK OR theme:ECON_STOCKMARKET OR theme:ECON_FISCAL) sourcelang:eng
     category: political_events
     frequency: frequent
 
