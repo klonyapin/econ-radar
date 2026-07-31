@@ -45,6 +45,12 @@ metrics:
     unit: percent
     source: fred
     source_id: IRLTLT01DEM156N
+  - id: CN_10Y
+    name: 中国10年債利回り (月次, OECD)
+    category: rate
+    unit: percent
+    source: fred
+    source_id: IRLTLT01CNM156N
 
   # ─────────── FX ───────────
   - id: USDJPY
@@ -68,6 +74,13 @@ metrics:
     source: yfinance
     source_id: DX-Y.NYB
     surprise_threshold_zscore: 2.5
+  - id: USDCNY
+    name: 人民元 (対USD、FRED 公式レート)
+    category: fx
+    unit: CNY_per_USD
+    source: fred
+    source_id: DEXCHUS
+    surprise_threshold_zscore: 2.5
 
   # ─────────── Spreads (derived) ───────────
   - id: US_2s10s
@@ -83,6 +96,12 @@ metrics:
     unit: percent_points
     derived_from: [US_10Y, JP_10Y]
     formula: US_10Y - JP_10Y
+  - id: CN_US_10Y_SPREAD
+    name: 米中10年金利差 (人民元・資本フローに影響)
+    category: spread
+    unit: percent_points
+    derived_from: [US_10Y, CN_10Y]
+    formula: US_10Y - CN_10Y
 
   # ─────────── Volatility ───────────
   - id: VIX
@@ -118,6 +137,79 @@ metrics:
     unit: index_points
     source: yfinance
     source_id: ^HSI
+  - id: SHCOMP
+    name: 上海総合指数
+    category: equity_index
+    unit: index_points
+    source: yfinance
+    source_id: "000001.SS"
+
+  # ─────────── Cryptocurrency (retail risk sentiment proxy) ───────────
+  - id: BTC_USD
+    name: ビットコイン (対USD)
+    category: equity_index
+    unit: usd
+    source: yfinance
+    source_id: BTC-USD
+    surprise_threshold_zscore: 3.0
+
+  # ─────────── Commodities (インフレ・成長・地政学の主要ドライバー) ───────────
+  - id: WTI_OIL
+    name: WTI 原油
+    category: commodity
+    unit: usd_per_barrel
+    source: yfinance
+    source_id: CL=F
+    surprise_threshold_zscore: 2.5
+  - id: BRENT_OIL
+    name: ブレント原油
+    category: commodity
+    unit: usd_per_barrel
+    source: yfinance
+    source_id: BZ=F
+    surprise_threshold_zscore: 2.5
+  - id: GOLD
+    name: 金 (Comex)
+    category: commodity
+    unit: usd_per_oz
+    source: yfinance
+    source_id: GC=F
+    surprise_threshold_zscore: 2.5
+  - id: SILVER
+    name: 銀 (Comex)
+    category: commodity
+    unit: usd_per_oz
+    source: yfinance
+    source_id: SI=F
+    surprise_threshold_zscore: 3.0
+  - id: COPPER
+    name: 銅 (Comex, "Dr. Copper" 景気バロメーター)
+    category: commodity
+    unit: usd_per_lb
+    source: yfinance
+    source_id: HG=F
+    surprise_threshold_zscore: 2.5
+  - id: NATGAS
+    name: 天然ガス (Nymex)
+    category: commodity
+    unit: usd_per_mmbtu
+    source: yfinance
+    source_id: NG=F
+    surprise_threshold_zscore: 3.0
+  - id: WHEAT
+    name: 小麦 (CBOT)
+    category: commodity
+    unit: cents_per_bushel
+    source: yfinance
+    source_id: ZW=F
+    surprise_threshold_zscore: 2.5
+  - id: CORN
+    name: とうもろこし (CBOT)
+    category: commodity
+    unit: cents_per_bushel
+    source: yfinance
+    source_id: ZC=F
+    surprise_threshold_zscore: 2.5
 
   # ─────────── Monetary / Central bank ───────────
   - id: FED_BS_TOTAL
@@ -136,6 +228,13 @@ metrics:
     source: fred
     source_id: CPIAUCSL
     derived: yoy_change
+    surprise_threshold_zscore: 2.0
+  - id: CN_CPI
+    name: 中国CPI (月次、指数値)
+    category: macro_indicator
+    unit: index
+    source: fred
+    source_id: CHNCPIALLMINMEI
     surprise_threshold_zscore: 2.0
   - id: US_CORE_PCE
     name: 米コアPCE (Fed が最重視するインフレ指標)

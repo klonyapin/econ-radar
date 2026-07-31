@@ -72,6 +72,26 @@ sources:
     category: central_bank
     frequency: frequent
 
+  # ─────────── BIS aggregators (EM 中銀を含む世界中の speeches をカバー) ───────────
+  # 個別に TCMB (トルコ) / BCB (ブラジル) / Banxico (メキシコ) 等の RSS は
+  # 公開が薄い or 動作不安定。BIS が世界中の中銀 speeches を集約するので、
+  # ここ経由で EM 中銀 governor の発言が拾える (Basel Committee のニュースも同時)
+  - id: bis_cbspeeches
+    type: rss
+    url: https://www.bis.org/doclist/cbspeeches.rss
+    category: central_bank
+    frequency: frequent
+  - id: bis_pressrels
+    type: rss
+    url: https://www.bis.org/doclist/all_pressrels.rss
+    category: central_bank
+    frequency: frequent
+  - id: bis_statistics
+    type: rss
+    url: https://www.bis.org/doclist/all_statistics.rss
+    category: central_bank
+    frequency: frequent
+
   # ─────────── Institutional investors (frequent) ───────────
   # GPIF (Japan's public pension fund, ~$1.7T AUM) — quarterly reports
   # move markets, and any policy change signals major flow shifts.
