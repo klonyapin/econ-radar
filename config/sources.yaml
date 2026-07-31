@@ -72,6 +72,22 @@ sources:
     category: central_bank
     frequency: frequent
 
+  # ─────────── Institutional investors (frequent) ───────────
+  # GPIF (Japan's public pension fund, ~$1.7T AUM) — quarterly reports
+  # move markets, and any policy change signals major flow shifts.
+  # 生命保険協会 (Seiho) の RSS も見たが地域チャプター報告ばかりで
+  # 投資情報が薄いため見送り。
+  - id: gpif_press_ja
+    type: rss
+    url: https://www.gpif.go.jp/rss.xml
+    category: institutional_investor
+    frequency: frequent
+  - id: gpif_press_en
+    type: rss
+    url: https://www.gpif.go.jp/en/rss.xml
+    category: institutional_investor
+    frequency: frequent
+
   # ─────────── Government policy feeds (frequent) ───────────
   - id: kantei_press
     type: rss

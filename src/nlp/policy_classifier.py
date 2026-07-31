@@ -31,6 +31,9 @@ POLICY_ACTION_PHRASES: tuple[str, ...] = (
     "財政政策", "経済対策", "景気対策", "補正予算", "予算案",
     "為替介入", "通貨介入", "円買い介入",
     "関税", "経済制裁",
+    # ─── Institutional investor flows ───
+    "gpif", "portfolio rebalancing", "asset allocation change",
+    "資産配分変更", "運用方針変更",
 )
 
 POLICY_ENTITY_PHRASES: tuple[str, ...] = (
@@ -40,7 +43,7 @@ POLICY_ENTITY_PHRASES: tuple[str, ...] = (
 )
 
 _POLICY_SOURCE_CATEGORIES = frozenset(
-    {"policy", "central_bank", "news", "political_events"}
+    {"policy", "central_bank", "news", "political_events", "institutional_investor"}
 )
 
 
@@ -55,12 +58,14 @@ def score(text: str) -> tuple[int, int]:
 def is_policy_relevant(text: str, source_category: str) -> bool:
     """Decide whether to trigger LLM policy-hypothesis generation.
 
-    Requires at least one action phrase. Bare entity mentions never trigger
-    on their own — that's why entities are counted separately (see module
-    docstring). Entity count is available via ``score()`` for future callers
-    that want a stronger signal.
+    Institutional-investor feeds are curated to one entity's own communications
+    (GPIF etc.) — trust the source and process every item. Otherwise require
+    at least one action phrase. Bare entity mentions never trigger on their
+    own — that's why entities are counted separately (see module docstring).
     """
     if source_category not in _POLICY_SOURCE_CATEGORIES:
         return False
+    if source_category == "institutional_investor":
+        return True
     actions, _entities = score(text)
     return actions >= 1
