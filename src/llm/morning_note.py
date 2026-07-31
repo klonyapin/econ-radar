@@ -17,6 +17,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from src import structural
 from src.config_loader import load_metrics
 from src.llm.client import call_text
 from src.policy_calendar import upcoming
@@ -57,30 +58,82 @@ def generate_breaking(
     trigger_type: str,
     trigger_summary: str,
     now: datetime | None = None,
+    category: str | None = None,
+    related_metric_ids: list[str] | None = None,
 ) -> str:
     """Compose a Mode-D BREAKING note reacting to a single high-severity event.
 
-    ``trigger_type``: 'surprise' | 'policy' | 'geopolitical'
+    ``trigger_type``: 'surprise' | 'policy' | 'geopolitical' | 'official'
     ``trigger_summary``: 1-sentence description with the key numbers.
+    ``category``: internal category (e.g., 'natural_disaster', 'war',
+                  'official:usgs_significant') used to route structural facts.
+    ``related_metric_ids``: metric IDs relevant to the trigger (surprise case).
+
+    Injects a historical "playbook" (past comparable events + typical
+    flow-through) so the LLM writes actual economic insights, not just a
+    translation of the news headline.
     """
     if os.environ.get("DRY_RUN") == "1":
         print(f"[DRY_RUN morning_note] would generate BREAKING for {trigger_summary[:80]}", file=sys.stderr)
         return f"[DRY_RUN BREAKING placeholder for {trigger_type}]"
 
     now = now or datetime.now(timezone.utc)
-    lookback_since = now - timedelta(hours=6)  # tight window: what's happening RIGHT NOW
+    lookback_since = now - timedelta(hours=6)
     context = _assemble_context(conn, lookback_since, now)
 
-    system = _load_system_prompt("D")
-    user = (
-        f"# 現在: {now.strftime('%Y-%m-%d %H:%M UTC')}\n"
-        f"# 発火: BREAKING ({trigger_type})\n\n"
-        f"## トリガ\n{trigger_summary}\n\n"
-        f"{_render_user_context(context, 'breaking', 'D', now)}\n\n"
-        f"---\n上記の BREAKING イベントについて、Mode D の Few-shot 例に沿って "
-        f"200-350 字で即時解釈を書け。lede は 'BREAKING:' で始めよ。"
+    facts = structural.match(
+        trigger_summary, category=category, related_metric_ids=related_metric_ids
     )
-    return call_text(system, user, max_tokens=800)
+    playbook = structural.format_for_prompt(facts)
+
+    system = _load_breaking_system_prompt()
+
+    parts = [
+        f"# 現在: {now.strftime('%Y-%m-%d %H:%M UTC')}",
+        f"# 発火: BREAKING ({trigger_type}, category={category or 'n/a'})",
+        "",
+        "## トリガ",
+        trigger_summary,
+        "",
+    ]
+    if playbook:
+        parts.append(playbook)
+        parts.append("")
+    parts.append(_render_user_context(context, "breaking", "D", now))
+    parts.append("")
+    parts.append(
+        "---\n"
+        "上記の BREAKING イベントについて、以下の 5 段構造を必ず含む即時解釈を "
+        "書け。250-400 字。lede は 'BREAKING:' で始めよ。\n\n"
+        "1. **事実** (1文): 何が / いつ / どこで / どの規模で\n"
+        "2. **直接インパクト**: どのセクター・市場が真っ先に影響するか "
+        "(具体的な株・通貨・商品を名指し)\n"
+        "3. **過去類例**: 上記 playbook から最も近い過去事象を引用し、"
+        "その時の実測値 (%, bp) を必ず入れる\n"
+        "4. **フロー連鎖** (第一波→第二波→第三波): playbook の flow_through を"
+        "現状に当てはめる\n"
+        "5. **Watch (24-48h)**: 追跡すべき指標 3 個を metric_id / 日付付きで\n\n"
+        "「大変ですね」「注意が必要」等の一般人向けコメント禁止。"
+        "対象読者は sell-side トレーダーとマクロヘッジファンド運用者。"
+        "金融的意味合いに焦点を絞れ。"
+    )
+    user = "\n".join(parts)
+    return call_text(system, user, max_tokens=1500)
+
+
+def _load_breaking_system_prompt() -> str:
+    """System prompt for BREAKING — emphasises structured economic insight
+    over general commentary."""
+    style = _STYLE_GUIDE_PATH.read_text()
+    return (
+        "あなたは経験 15 年のマクロ・ストラテジストです。読者は sell-side "
+        "トレーダーとマクロヘッジファンド運用者。BREAKING 事象に対して、"
+        "**経済的・市場的意味合いだけ**を書くこと。一般人向けの心配・"
+        "共感コメントは禁止。以下のスタイルガイドを厳守しつつ、後述の "
+        "user メッセージにある「5段構造」を必ず埋めろ。\n\n"
+        + style
+        + "\n\n---\n今回は Mode D (BREAKING) で書いてください。"
+    )
 
 
 # ────────────────────── context assembly ──────────────────────

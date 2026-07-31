@@ -390,6 +390,7 @@ def _detect_and_post_surprise(conn, metric: MetricDefinition) -> None:
             conn,
             trigger_type="surprise",
             category=f"surprise:{metric.id}",
+            related_metric_ids=[metric.id],
             summary=(
                 f"{metric.name} ({metric.id}) が {signal.value} {metric.unit} "
                 f"に到達、z-score {signal.zscore:+.2f} — >4σ の極端な動き "
@@ -404,16 +405,22 @@ def _post_breaking(
     summary: str,
     category: str = "general",
     source_event_id: str | None = None,
+    related_metric_ids: list[str] | None = None,
 ) -> None:
     """Fire an immediate BREAKING alert (Mode D style) to the policy channel.
 
-    Persists to breaking_alerts for the de-dup logic. Callers that need
-    de-dup (geopolitical, where the same event may hit multiple sources)
-    should check ``_recently_fired_breaking`` first.
+    Persists to breaking_alerts for the de-dup logic. ``category`` is used
+    both for de-dup and for routing to structural_facts.yaml facts.
     """
     now = datetime.now(timezone.utc)
     try:
-        note = morning_note.generate_breaking(conn, trigger_type, summary)
+        note = morning_note.generate_breaking(
+            conn,
+            trigger_type,
+            summary,
+            category=category,
+            related_metric_ids=related_metric_ids,
+        )
     except Exception as e:
         _log_error(f"BREAKING generation failed: {e}")
         return
@@ -478,8 +485,10 @@ def _check_geopolitical_breaking(conn, ev: IngestedEvent, combined_text: str) ->
     if _recently_fired_breaking(conn, category, within_hours=24):
         return
     summary = (
-        f"[{ev.source}] {ev.title} "
-        f"(検出カテゴリ: {category}, 時刻 {ev.ts.isoformat()})"
+        f"[{ev.source}] {ev.title}\n"
+        f"検出カテゴリ: {category}\n"
+        f"本文抜粋: {(ev.body or '')[:300]}\n"
+        f"時刻: {ev.ts.isoformat()}"
     )
     _post_breaking(
         conn,

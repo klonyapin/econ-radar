@@ -1,0 +1,167 @@
+# 「イベントが市場にどう波及するか」の知識ベース。
+# BREAKING 発火時に、トリガの category / キーワードにマッチする fact を
+# プロンプトに注入する。歴史的類例 + フロー連鎖 + watch 指標のセット。
+#
+# 収録原則:
+# - 過去実例と数字 (%、bp、$) をセットで書く。憶測は書かない
+# - 「第一波→第二波→第三波」の flow_through 構造
+# - key_actors に具体的な企業名・機関名 (LLM に個別名を出させるフック)
+
+facts:
+
+  # ─────────── 自然災害 ───────────
+
+  - id: japan_major_earthquake
+    title: 日本の大地震 (M7+) → 金融市場フロー
+    match_keywords: ["earthquake", "地震", "M 7", "M 8", "magnitude 7", "magnitude 8", "magnitude 9", "Japan"]
+    match_categories: ["natural_disaster", "official:usgs_significant", "official:jma_eqvol"]
+    historical_analogs:
+      - "1995-01-17 阪神淡路 M7.3: JGB 10Y -30bp (逃避買い)、TOPIX 直後 -8%、円が数週で 78 → 84 に反発 (レパトリ観測)、BOJ が即日オペで流動性供給"
+      - "2011-03-11 東日本 M9.0: JGB 10Y -20bp、TOPIX -18% (2日)、円が数日で 82 → 76 円台まで超円高、3/18 G7 協調円売り介入 ($30bn 相当)"
+      - "2016-04-14 熊本 M7.0-7.3: 影響限定的、TOPIX -0.5%、JGB 動かず、局地被害のため"
+    flow_through:
+      - "第一波 (数時間): 東京市場 stocks 急落、円が「レパトリ需要」観測で AUD/NZD 下落、JGB は逃避買い"
+      - "第二波 (数日): 保険株 (東京海上/SOMPO/MS&AD) 急落、再保険料急騰、日銀の緊急オペ発表"
+      - "第三波 (数週-数月): 復興財源議論 → 補正予算 → 長期金利上昇圧力、被害額確定後の建設セクター上昇"
+    related_metrics: [USDJPY, NIKKEI225, JP_10Y, VIX]
+    key_actors: ["東京海上ホールディングス", "SOMPO ホールディングス", "MS&AD インシュアランス", "日銀 (植田総裁)", "財務省", "内閣府"]
+
+  - id: atlantic_hurricane_us_landfall
+    title: 大西洋ハリケーン米本土上陸 → 原油・保険インパクト
+    match_keywords: ["hurricane", "cyclone", "typhoon", "category 4", "category 5", "landfall"]
+    match_categories: ["natural_disaster", "official:noaa_hurricanes"]
+    historical_analogs:
+      - "2005-08 Katrina Cat5: WTI 一時 +8% (製油所停止)、ガソリン先物 +30%、Allstate/Progressive 株 -15%、保険業界計 $80bn 損失"
+      - "2017-08 Harvey Cat4: WTI +5%、ガソリン +25%、TX 製油所 25% 停止、住宅市場は数四半期影響"
+      - "2022-09 Ian Cat4: フロリダ保険会社数社が破綻、翌年 FL 州保険料 +40%、再保険業界へ波及"
+    flow_through:
+      - "第一波 (上陸前 48h): WTI/ガソリン先物に premium、保険株下落先取り、防災銘柄上昇"
+      - "第二波 (上陸後 24-72h): 実被害額に応じて再保険 (RE) 急騰、Munich Re/Swiss Re/Berkshire (再保険部門) 株動く"
+      - "第三波 (数週): 復興需要で建材 (Home Depot/Lowe's)・住宅関連上昇、油田リグ回復ペースで WTI 戻り"
+    related_metrics: [WTI_OIL, BRENT_OIL, SP500, VIX]
+    key_actors: ["Berkshire Hathaway", "Munich Re", "Swiss Re", "Allstate", "Progressive", "State Farm", "Home Depot"]
+
+  # ─────────── 地政学 ───────────
+
+  - id: em_coup_currency_crisis
+    title: 新興国のクーデター → 通貨危機・地域伝染
+    match_keywords: ["coup", "military coup", "overthrown", "クーデター", "軍事政権"]
+    match_categories: ["coup_political_upheaval"]
+    historical_analogs:
+      - "2016-07 トルコ未遂: TRY 一時 -8%、Erdogan 生き残りで反発、CDS +250bp、翌年から緩やかに投資家撤退"
+      - "2021-02 ミャンマー: 通貨 K が数週で -30%、投資家撤退、SWIFT アクセス制限議論、隣国 THB 一時 -1.5%"
+      - "2023-07 ニジェール: XOF は CFA ペッグで小揺れ、しかしウラン価格 +12% (世界 6% を生産)"
+      - "2023-08 ガボン: 石油の 200k b/d 生産に懸念、Brent +2%、フランス撤退議論"
+    flow_through:
+      - "第一波 (数時間): 現地通貨 sold off (-5-15%)、当該国 CDS 急拡大 (+150-500bp)、株式取引停止"
+      - "第二波 (数日): 地域伝染 — 近隣 EM 通貨も 2-5% 下落、投資家が EM ETF (EMB, EEM) から流出、DXY 上昇"
+      - "第三波 (数週): 該当国が資源輸出国なら関連 commodity が上昇、IMF 救済 or 資本規制 の議論、格付機関 (S&P/Moody's/Fitch) の格下げ"
+    related_metrics: [DXY, VIX, US_HY_SPREAD]
+    key_actors: ["IMF (Georgieva 専務理事)", "World Bank", "S&P Global Ratings", "Moody's", "Fitch"]
+
+  - id: major_middle_east_conflict
+    title: 中東紛争 (イラン/イスラエル/湾岸) → 原油・安全資産
+    match_keywords: ["Iran", "Israel", "Gaza", "Hezbollah", "Houthi", "Strait of Hormuz", "airstrike", "ミサイル", "空爆"]
+    match_categories: ["war", "military_action"]
+    historical_analogs:
+      - "1990-08 湾岸戦争: WTI が $16 → $40 に (数週)、金 +25%、DXY +5%、S&P500 -20% (数月かけて底)"
+      - "2019-09 サウジ油田攻撃 (Abqaiq): Brent 単日 +14% (最大の上げ幅)、その後数日で戻る (SPR 放出示唆)"
+      - "2020-01 Soleimani 暗殺: WTI +4% 一時、金 +2%、リスクオフ短命 (数日で戻る)"
+      - "2023-10 ハマス-イスラエル: WTI +5% 一時的、CDS も限定的、Suez/Hormuz 波及なしと市場が判定"
+    flow_through:
+      - "第一波 (数時間): 原油 (WTI/Brent) 急騰、金・スイスフラン・円が safe haven bid、DXY 上昇"
+      - "第二波 (数日): Hormuz/Suez 通行への実質影響を市場が査定 → 影響ありなら継続、なければリバース"
+      - "第三波 (数週): エネルギー価格上昇分の CPI 押し上げ → Fed の rate path 再評価"
+    related_metrics: [WTI_OIL, BRENT_OIL, GOLD, DXY, VIX, USDJPY]
+    key_actors: ["OPEC+ (Al-Ghais 事務局長)", "IEA (Birol 事務局長)", "米 SPR (Strategic Petroleum Reserve)", "Saudi Aramco"]
+
+  - id: assassination_political_leader
+    title: 要人暗殺 → 政局不安と市場反応
+    match_keywords: ["assassinated", "assassination", "shot dead", "暗殺"]
+    match_categories: ["assassination_attack"]
+    historical_analogs:
+      - "1963-11 Kennedy 暗殺: NYSE 早期閉場、翌日 S&P +4% (LBJ 継承の安定期待)"
+      - "2022-07 安倍晋三銃撃: TOPIX 当日 -0.5% (限定的)、円小揺れ、選挙結果への影響が焦点になった"
+      - "2024-07 Trump 銃撃未遂: 翌日 S&P +0.3% (Trump 勝率上昇 → 減税継続期待)、DXY +0.2%"
+    flow_through:
+      - "第一波 (数時間): 該当国株 -1 to -5%、通貨小反落、safe haven (JPY/CHF/gold) buy"
+      - "第二波 (数日): 政局展開次第 — 継承者の政策継続性が市場判断を分ける"
+      - "第三波 (選挙まで): 政策方向転換の可能性を price in、関連セクターが動く"
+    related_metrics: [VIX, GOLD, USDJPY]
+
+  # ─────────── 金融ショック ───────────
+
+  - id: bank_run_regional_crisis
+    title: 銀行破綻・銀行取り付け騒ぎ → 信用ストレス伝染
+    match_keywords: ["bank run", "bank collapse", "bank failure", "取り付け騒ぎ", "銀行破綻"]
+    match_categories: ["financial_crisis"]
+    historical_analogs:
+      - "2023-03 SVB/Signature: 週末で急転、Fed が BTFP を月曜開設、地銀 KRE ETF -25% (2週)、Credit Suisse 買収に波及"
+      - "2008-09 Lehman: 破綻から数日で TED spread が 4% 超、株が数ヶ月で -40%、Fed 緊急オペ + QE1 発動"
+      - "1998-09 LTCM: Fed が 14 大銀行を集めて救済協調、Fed 50bp 緊急利下げ"
+    flow_through:
+      - "第一波 (数時間-数日): 地銀ETF (KRE, KBE) 急落、Treasuries 逃避買い、Fed rate cut 期待急上昇"
+      - "第二波 (数週): Fed が緊急ファシリティ (BTFP 型) 開設、CDS スプレッド拡大 (IG +50bp, HY +200bp)"
+      - "第三波 (数月): 銀行規制強化議論、地銀の M&A 加速、信用収縮で成長減速"
+    related_metrics: [SP500, US_HY_SPREAD, US_10Y, VIX]
+    key_actors: ["Fed (Powell, Jefferson)", "FDIC", "OCC", "Treasury (Bessent)"]
+
+  # ─────────── 中央銀行の緊急対応 ───────────
+
+  - id: emergency_central_bank_action
+    title: 中銀の緊急対応 (会合外利下げ・介入)
+    match_keywords: ["emergency rate", "unscheduled", "intervention", "緊急利下げ", "介入"]
+    match_categories: ["policy_rate:fed_monetary", "policy_rate:boj_press", "policy_rate:ecb_press"]
+    historical_analogs:
+      - "2020-03-03 Fed 緊急 50bp 利下げ: COVID 拡大対応、S&P500 逆に -3% (パニック解釈)、翌週さらに -13%"
+      - "2020-03-15 Fed 緊急 100bp + QE $700bn: 週末デシジョン、月曜 S&P -12% (歴史的下落)"
+      - "1998-09 LTCM 対応で Fed 50bp 緊急利下げ: 株は +5% (救済期待)"
+    flow_through:
+      - "第一波 (数時間): 通貨大幅変動、金利急変、株は解釈次第 (救済かパニックか)"
+      - "第二波 (数日): 追加措置の予告有無、他中銀の対応 (協調 or 独自)"
+      - "第三波 (数週): 実体経済シグナルとの整合、市場が「Fed put」を織り込む"
+    related_metrics: [US_10Y, US_2Y, USDJPY, EURUSD, DXY, SP500, VIX, GOLD]
+    key_actors: ["Powell", "Ueda", "Lagarde", "Bailey"]
+
+  # ─────────── コモディティ・供給ショック ───────────
+
+  - id: opec_surprise_decision
+    title: OPEC+ の予想外決定 → 原油・エネルギー株
+    match_keywords: ["OPEC", "OPEC+", "production cut", "output cut", "減産合意"]
+    match_categories: []
+    historical_analogs:
+      - "2020-04-12 歴史的 9.7 mbd 減産合意: Brent は反応薄 (需要不足の方が強かった)"
+      - "2022-10 200万バレル/日減産: Brent +3%、Biden 政権と衝突、SPR 放出議論"
+      - "2023-04 サプライズ 116万バレル/日減産: Brent 一時 +8%、月内に戻る (需要懸念で)"
+    flow_through:
+      - "第一波: Brent/WTI 数時間で 3-8% 変動、エネルギー株 (XOM, CVX, Shell) 連動"
+      - "第二波: 消費国 (米国) の反応、SPR 放出示唆、EU 制裁との相互作用"
+      - "第三波: 数週後の実需給データで方向確定、CPI インフレ inputs 変化"
+    related_metrics: [WTI_OIL, BRENT_OIL, US_CPI_YOY, US_BEI_10Y]
+    key_actors: ["OPEC+ Al-Ghais 事務局長", "Saudi Aramco (Nasser CEO)", "Russia Novak 副首相"]
+
+  # ─────────── 構造的な機関投資家フロー (BREAKING 以外にも参照) ───────────
+
+  - id: jp_life_insurance_30y_reinvestment
+    title: 日本の生保 30Y JGB 再投資サイクル
+    match_keywords: []
+    match_categories: []
+    background: >
+      主要生保 (第一生命/日本生命/明治安田/かんぽ) は資産の 15-20% を
+      JGB で保有、うち半分が超長期。2010年代前半に大量購入した 30Y が
+      2040 年前後に満期集中。為替ヘッジコスト (USD3M-JPY3M spread) が
+      4.5% 超えると外債売却が加速、JGB 超長期に回帰する動きが強まる。
+    related_metrics: [JP_10Y, USDJPY, JP_US_10Y_SPREAD]
+    key_actors: ["第一生命ホールディングス (稲垣精二 社長)", "日本生命 (清水博 社長)", "明治安田生命 (永野毅 社長)", "かんぽ生命"]
+
+  - id: gpif_rebalancing_governance
+    title: GPIF の四半期リバランシング
+    match_keywords: []
+    match_categories: []
+    background: >
+      GPIF は基本ポートフォリオ 25/25/25/25 (国内債券/国内株式/外国債券/
+      外国株式)、乖離許容 ±7%。四半期末に大きな乖離があれば機械的に
+      リバランス。運用資産 ~200兆円、市場インパクトは無視できない。
+      2020 年のドル安局面で外国株式を機械的に買い増した実績あり。
+    related_metrics: [NIKKEI225, SP500, USDJPY, JP_10Y]
+    key_actors: ["GPIF (理事長要確認)"]
